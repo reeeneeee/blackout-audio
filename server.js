@@ -231,14 +231,6 @@ app.get('/listen/:fileId', (req, res) => {
 <body>
     <div id="message"></div>
     <div id="meditation-buttons"></div>
-    <div class="player-container">
-      <h2>🎵 Audio Player</h2>
-      <h3>${metadata.originalName}</h3>
-      <div class="file-info">
-          <p>Size: ${(metadata.size / 1024 / 1024).toFixed(2)} MB</p>
-          <p>Uploaded: ${metadata.uploadDate.toLocaleString()}</p>
-      </div>
-   </div>
     <div
       style="font-size: 60px; position: absolute; z-index: 5; visibility: hidden;"
       id="title"

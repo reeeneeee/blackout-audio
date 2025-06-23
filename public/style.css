@@ -135,7 +135,7 @@ a {
     gap: 20px;
     padding: 40px;
     background-color: rgba(81, 120, 153, 0.1);
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(3px);
     box-sizing: border-box;
     align-items: center;
     justify-items: center;

@@ -31,16 +31,22 @@ let audioBuffer = null;
 const allVoicesObtained = new Promise(function (resolve, reject) {
   let voices = window.speechSynthesis.getVoices();
   if (voices.length !== 0) {
+    console.log("Voices available immediately:", voices.length);
     resolve(voices);
   } else {
+    console.log("Waiting for voices to load...");
     window.speechSynthesis.addEventListener("voiceschanged", function () {
       voices = window.speechSynthesis.getVoices();
+      console.log("Voices loaded:", voices.length);
       resolve(voices);
     });
   }
 });
 
-allVoicesObtained.then((voices) => (synth.voice = voices[0]));
+allVoicesObtained.then((voices) => {
+  console.log("Setting voice:", voices[0]?.name || "default");
+  synth.voice = voices[0];
+});
 
 // Prevent right-click and keyboard shortcuts
 document.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -357,14 +363,46 @@ function ear(eyeLandmarks) {
   }
 
   function say(text) {
-    console.log("saying " + text);
+    console.log("Attempting to say:", text);
   
-    synth.rate = 1.3;
-    synth.pitch = 1;
-    synth.volume = 0.4;
-    synth.text = text;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(synth);
+    // Check if speech synthesis is supported
+    if (!window.speechSynthesis) {
+      console.error("Speech synthesis not supported");
+      return;
+    }
+    
+    // Check if speech synthesis is speaking
+    if (window.speechSynthesis.speaking) {
+      console.log("Speech synthesis is already speaking, cancelling...");
+      window.speechSynthesis.cancel();
+    }
+    
+    // Wait a bit for the cancel to take effect
+    setTimeout(() => {
+      console.log("Creating new speech utterance");
+      
+      // Create a new utterance for each speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.3;
+      utterance.pitch = 1;
+      utterance.volume = 0.4;
+      
+      // Set voice if available
+      if (synth.voice) {
+        utterance.voice = synth.voice;
+        console.log("Using voice:", synth.voice.name);
+      } else {
+        console.log("No voice set, using default");
+      }
+      
+      // Add event listeners for debugging
+      utterance.onstart = () => console.log("Speech started");
+      utterance.onend = () => console.log("Speech ended");
+      utterance.onerror = (event) => console.error("Speech error:", event.error);
+      
+      // Speak the text
+      window.speechSynthesis.speak(utterance);
+    }, 100);
   }
 
   function startWebcam() {
@@ -452,6 +490,24 @@ window.testAudio = async function() {
     } catch (error) {
         console.error("Audio test failed:", error);
     }
+};
+
+// Global test function for debugging speech synthesis issues
+window.testSpeech = function() {
+    console.log("Testing speech synthesis...");
+    
+    // Test 1: Check if speech synthesis is supported
+    if (!window.speechSynthesis) {
+        console.error("Speech synthesis not supported");
+        return;
+    }
+    
+    console.log("Speech synthesis supported");
+    console.log("Available voices:", window.speechSynthesis.getVoices().length);
+    console.log("Currently speaking:", window.speechSynthesis.speaking);
+    
+    // Test 2: Try to speak a simple message
+    say("Hello, this is a test of speech synthesis.");
 };
 
 
