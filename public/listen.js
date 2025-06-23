@@ -203,7 +203,17 @@ async function startFaceDetection() {
 
             if (!audioSource && audioContext && audioBuffer) {
                 console.log("Creating new audio source, audioContext state:", audioContext.state);
-                audioSource = playAudio(audioBuffer, 0.5);
+                // Handle async playAudio function
+                playAudio(audioBuffer, 0.5).then(source => {
+                    if (source) {
+                        audioSource = source;
+                        console.log("Audio source created successfully");
+                    } else {
+                        console.error("Failed to create audio source");
+                    }
+                }).catch(error => {
+                    console.error("Error playing audio:", error);
+                });
             } else if (!audioContext) {
                 console.log("Audio context not initialized");
             } else if (!audioBuffer) {
@@ -238,23 +248,29 @@ async function startFaceDetection() {
 // Initialize Web Audio API
 async function initAudio() {
     try {
+        // Create audio context with proper iOS support
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log("Audio context created, state:", audioContext.state);
         
-        // Resume audio context (required for mobile browsers)
+        // iOS requires user interaction to start audio context
         if (audioContext.state === 'suspended') {
+            console.log("Audio context suspended, waiting for user interaction...");
+            // Create a silent audio buffer to unlock audio context
+            const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+            const silentSource = audioContext.createBufferSource();
+            silentSource.buffer = silentBuffer;
+            silentSource.connect(audioContext.destination);
+            
+            // Resume audio context
             await audioContext.resume();
-        }
-        
-        // Disable audio worklets to prevent recording
-        if (audioContext.audioWorklet) {
-            audioContext.audioWorklet.addModule = () => Promise.reject('Audio worklets disabled');
+            console.log("Audio context resumed, new state:", audioContext.state);
         }
         
         // Load audio files using /audio/:fileId endpoint
         console.log("Loading audio file with fileId:", fileId);
         
         const [audioResponse] = await Promise.all([
-          fetch(`/audio/${fileId}`)
+            fetch(`/audio/${fileId}`)
         ]);
         
         if (!audioResponse.ok) {
@@ -274,41 +290,47 @@ async function initAudio() {
 }
 
 // Play audio using Web Audio API
-function playAudio(buffer, volume = 0.5) {
+async function playAudio(buffer, volume = 0.5) {
     if (!audioContext || !buffer) {
         console.log("Cannot play audio: audioContext or buffer not initialized");
         return null;
     }
     
-    // Ensure audio context is running (required for mobile)
-    if (audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-            console.log("Audio context resumed");
-        }).catch(error => {
-            console.error("Failed to resume audio context:", error);
-        });
-    }
-    
-    const source = audioContext.createBufferSource();
-    const gainNode = audioContext.createGain();
-    
-    source.buffer = buffer;
-    gainNode.gain.value = volume;
-    
-    source.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Start from current position
-    console.log("Starting audio from position:", currentPosition, "buffer duration:", buffer.duration);
     try {
+        // iOS requires audio context to be resumed before playing
+        if (audioContext.state === 'suspended') {
+            console.log("Audio context suspended, resuming...");
+            await audioContext.resume();
+            console.log("Audio context resumed, new state:", audioContext.state);
+        }
+        
+        // Ensure audio context is running
+        if (audioContext.state !== 'running') {
+            console.error("Audio context not running, state:", audioContext.state);
+            return null;
+        }
+        
+        const source = audioContext.createBufferSource();
+        const gainNode = audioContext.createGain();
+        
+        source.buffer = buffer;
+        gainNode.gain.value = volume;
+        
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Start from current position
+        console.log("Starting audio from position:", currentPosition, "buffer duration:", buffer.duration);
+        
+        // iOS requires immediate start (no delay)
         source.start(0, currentPosition);
         console.log("Audio started successfully");
+        
+        return { source, gainNode };
     } catch (error) {
         console.error("Failed to start audio:", error);
         return null;
     }
-    
-    return { source, gainNode };
 }
 
 // Stop audio
@@ -508,6 +530,55 @@ window.testSpeech = function() {
     
     // Test 2: Try to speak a simple message
     say("Hello, this is a test of speech synthesis.");
+};
+
+// Global test function for debugging iOS audio issues
+window.testIOSAudio = async function() {
+    console.log("Testing iOS audio functionality...");
+    
+    try {
+        // Test 1: Check if AudioContext is supported
+        if (!window.AudioContext && !window.webkitAudioContext) {
+            console.error("AudioContext not supported");
+            return;
+        }
+        
+        // Test 2: Create audio context
+        const testContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log("Test audio context created, state:", testContext.state);
+        
+        // Test 3: Resume audio context (required for iOS)
+        if (testContext.state === 'suspended') {
+            console.log("Resuming test audio context...");
+            await testContext.resume();
+            console.log("Test audio context resumed, new state:", testContext.state);
+        }
+        
+        // Test 4: Create a simple beep sound
+        const oscillator = testContext.createOscillator();
+        const gainNode = testContext.createGain();
+        
+        oscillator.frequency.value = 440; // A4 note
+        oscillator.connect(gainNode);
+        gainNode.connect(testContext.destination);
+        
+        gainNode.gain.setValueAtTime(0.1, testContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, testContext.currentTime + 0.5);
+        
+        oscillator.start(testContext.currentTime);
+        oscillator.stop(testContext.currentTime + 0.5);
+        
+        console.log("Test beep sound started");
+        
+        // Clean up after 1 second
+        setTimeout(() => {
+            testContext.close();
+            console.log("Test audio context closed");
+        }, 1000);
+        
+    } catch (error) {
+        console.error("iOS audio test failed:", error);
+    }
 };
 
 
