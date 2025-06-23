@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio File Uploader</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .upload-area {
+            border: 3px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .upload-area.dragover .upload-icon {
+            color: #667eea;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar.show {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+
+        .url-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .url-link {
+            word-break: break-all;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .url-link:hover {
+            text-decoration: underline;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Audio Uploader</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">🎵</div>
+            <div class="upload-text">
+                <strong>Drop your audio file here</strong><br>
+                or click to browse
+            </div>
+            <small>Supports MP3, WAV, M4A, OGG, FLAC (max 50MB)</small>
+        </div>
+
+        <input type="file" id="fileInput" accept="audio/*">
+        
+        <div class="file-info" id="fileInfo">
+            <strong>Selected file:</strong> <span id="fileName"></span><br>
+            <strong>Size:</strong> <span id="fileSize"></span><br>
+            <strong>Type:</strong> <span id="fileType"></span>
+        </div>
+
+        <button class="upload-btn" id="uploadBtn" disabled>Upload Audio File</button>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileType = document.getElementById('fileType');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const result = document.getElementById('result');
+        const statusMessage = document.getElementById('statusMessage');
+
+        let selectedFile = null;
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            console.log('File selected:', file);
+            
+            // Validate file type
+            if (!file.type.startsWith('audio/')) {
+                console.log('Invalid file type:', file.type);
+                showResult('Please select a valid audio file.', 'error');
+                return;
+            }
+
+            // Validate file size (50MB)
+            if (file.size > 50 * 1024 * 1024) {
+                console.log('File too large:', file.size);
+                showResult('File too large. Maximum size is 50MB.', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            console.log('File validated successfully');
+            
+            // Show file info
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileType.textContent = file.type;
+            fileInfo.classList.add('show');
+            
+            // Enable upload button
+            uploadBtn.disabled = false;
+            
+            // Hide previous results
+            result.style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Upload functionality
+        uploadBtn.addEventListener('click', uploadFile);
+
+        function uploadFile() {
+            if (!selectedFile) {
+                console.log('No file selected for upload');
+                updateStatus('No file selected for upload');
+                return;
+            }
+
+            console.log('Starting upload for file:', selectedFile.name);
+            updateStatus('Starting upload...');
+            
+            const formData = new FormData();
+            formData.append('audio', selectedFile);
+
+            // Show progress bar
+            progressBar.classList.add('show');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+
+            // Create XMLHttpRequest for progress tracking
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    console.log('Upload progress:', percentComplete.toFixed(1) + '%');
+                    updateStatus(`Uploading... ${percentComplete.toFixed(1)}%`);
+                    progressFill.style.width = percentComplete + '%';
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                console.log('Upload completed. Status:', xhr.status);
+                console.log('Response:', xhr.responseText);
+                hideStatus();
+                
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        console.log('Upload successful:', response);
+                        showResult(`
+                            <strong>Upload successful!</strong><br>
+                            Your audio file is now available at:
+                            <div class="url-container">
+                                <a href="${response.url}" target="_blank" class="url-link">${response.url}</a>
+                                <br>
+                                <button class="copy-btn" onclick="copyToClipboard('${response.url}')">Copy URL</button>
+                            </div>
+                        `, 'success');
+                        
+                        // Reset form
+                        resetForm();
+                    } else {
+                        console.log('Upload failed:', response.error);
+                        showResult('Upload failed: ' + response.error, 'error');
+                    }
+                } else {
+                    const response = JSON.parse(xhr.responseText);
+                    console.log('Upload failed with status', xhr.status, ':', response);
+                    showResult('Upload failed: ' + (response.error || 'Unknown error'), 'error');
+                }
+                
+                // Reset button
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload Audio File';
+                progressBar.classList.remove('show');
+                progressFill.style.width = '0%';
+            });
+
+            xhr.addEventListener('error', () => {
+                console.log('Upload error occurred');
+                hideStatus();
+                showResult('Upload failed: Network error', 'error');
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload Audio File';
+                progressBar.classList.remove('show');
+                progressFill.style.width = '0%';
+            });
+
+            console.log('Sending request to /upload');
+            updateStatus('Connecting to server...');
+            xhr.open('POST', '/upload');
+            xhr.send(formData);
+        }
+
+        function showResult(message, type) {
+            result.innerHTML = message;
+            result.className = `result ${type}`;
+        }
+
+        function updateStatus(message) {
+            statusMessage.textContent = message;
+            statusMessage.classList.add('show');
+            console.log('Status:', message);
+        }
+
+        function hideStatus() {
+            statusMessage.classList.remove('show');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show feedback
+                const copyBtn = event.target;
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                copyBtn.style.background = '#007bff';
+                
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.background = '#28a745';
+                }, 2000);
+            });
+        }
+
+        function resetForm() {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Upload Audio File';
+        }
+    </script>
+</body>
+</html>
