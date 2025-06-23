@@ -142,7 +142,7 @@ app.post('/upload', upload.single('audio'), (req, res) => {
     
     res.json({
         success: true,
-        url: `${req.protocol}://${req.get('host')}${uniqueUrl}`,
+        url: `https://${req.get('host')}${uniqueUrl}`, //`${req.protocol}://${req.get('host')}${uniqueUrl}`,
         fileId: fileId
     });
 });
