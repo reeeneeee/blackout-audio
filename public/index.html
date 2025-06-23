@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio File Uploader</title>
+    <title>panoptic</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,8 +12,8 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            background: #517899ff;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -209,15 +209,15 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎵 Audio Uploader</h1>
+        <h1>panoptic audio uploader</h1>
         
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">🎵</div>
             <div class="upload-text">
-                <strong>Drop your audio file here</strong><br>
-                or click to browse
+                <strong>drop your audio file here</strong><br>
+                (or click to browse)
             </div>
-            <small>Supports MP3, WAV, M4A, OGG, FLAC (max 50MB)</small>
+            <small>supports mp3, wav, m4a, ogg, flac (max 50mb)</small>
         </div>
 
         <input type="file" id="fileInput" accept="audio/*">
@@ -228,7 +228,7 @@
             <strong>Type:</strong> <span id="fileType"></span>
         </div>
 
-        <button class="upload-btn" id="uploadBtn" disabled>Upload Audio File</button>
+        <button class="upload-btn" id="uploadBtn" disabled>upload</button>
         
         <div class="progress-bar" id="progressBar">
             <div class="progress-fill" id="progressFill"></div>
@@ -415,6 +415,7 @@
         }
 
         function showResult(message, type) {
+            result.style.display = 'block';
             result.innerHTML = message;
             result.className = `result ${type}`;
         }
