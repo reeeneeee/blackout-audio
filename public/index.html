@@ -12,8 +12,8 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #517899ff;
+            font-family: 'Courier New', Courier, monospace;
+            background: rgb(53, 59, 64);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -32,7 +32,7 @@
 
         h1 {
             text-align: center;
-            color: #333;
+            color: rgb(53, 59, 64);
             margin-bottom: 30px;
             font-size: 2rem;
         }
@@ -49,22 +49,22 @@
 
         .upload-area:hover,
         .upload-area.dragover {
-            border-color: #667eea;
+            border-color: rgb(53, 59, 64);
             background-color: #f8f9ff;
         }
 
         .upload-icon {
             font-size: 3rem;
-            color: #ccc;
+            color: rgb(53, 59, 64);
             margin-bottom: 15px;
         }
 
         .upload-area.dragover .upload-icon {
-            color: #667eea;
+            color: rgb(53, 59, 64);
         }
 
         .upload-text {
-            color: #666;
+            color: rgb(53, 59, 64);
             font-size: 1.1rem;
             margin-bottom: 15px;
         }
@@ -86,7 +86,8 @@
         }
 
         .upload-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Courier New', Courier, monospace; 
+            background: rgb(53, 59, 64);
             color: white;
             border: none;
             padding: 12px 30px;
@@ -100,6 +101,7 @@
 
         .upload-btn:hover {
             transform: translateY(-2px);
+            background: rgb(43, 49, 54);
         }
 
         .upload-btn:disabled {
@@ -124,7 +126,7 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: rgb(53, 59, 64);
             width: 0%;
             transition: width 0.3s ease;
         }
@@ -172,7 +174,7 @@
 
         .url-link {
             word-break: break-all;
-            color: #007bff;
+            color: rgb(53, 59, 64);
             text-decoration: none;
             font-weight: bold;
         }
@@ -182,7 +184,7 @@
         }
 
         .copy-btn {
-            background: #28a745;
+            background: rgb(53, 59, 64);
             color: white;
             border: none;
             padding: 8px 15px;
@@ -193,7 +195,7 @@
         }
 
         .copy-btn:hover {
-            background: #218838;
+            background: rgb(43, 49, 54);
         }
 
         @media (max-width: 600px) {
@@ -448,7 +450,7 @@
                 
                 setTimeout(() => {
                     copyBtn.textContent = originalText;
-                    copyBtn.style.background = '#28a745';
+                    copyBtn.style.background = 'rgb(53, 59, 64)';
                 }, 2000);
             });
         }

@@ -3,7 +3,7 @@ body {
     padding: 0;
     width: 100vw;
     height: 100vh;
-    color: #517899ff;
+    color: rgb(53, 59, 64);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -25,7 +25,7 @@ button, input{
 }
 
 .dark-mode {
-    background-color: #517899ff;
+    background-color: rgb(53, 59, 64);
     color: #EAE2CCff;
 }
 
@@ -123,8 +123,14 @@ a {
     color: rgb(235, 191, 157);
     display: none; /* Hidden initially */
     z-index: 10;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 100;
+    font-style: italic;
 }
 
 #bottomNote {
     z-index: 10;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 100;
+    font-style: italic;
 }
