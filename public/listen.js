@@ -84,36 +84,79 @@ async function initializeAudioFile() {
         audioFile = fileId; // Keep for backward compatibility
         
         console.log("Audio file initialized with fileId:", fileId);
-
-        allVoicesObtained.then((voices) =>
-          say(
-            "Please wait a few seconds for models to load." +
-            " When you see your facial features detected, blink slowly for 5 seconds" +
-            " to help the camera calibrate to your eye shape." +
-            " Then, click or tap any key to toggle calibration mode off."
-          )
-        );
-
+        
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
         // Show the title
         document.getElementById('title').style.display = 'flex';
-
-        // Start face detection after file selection
-        await startFaceDetection();
-
-        // Start listening for user interaction only after file is selected
-        ['click', 'touchstart', 'keydown'].forEach(eventType => {
-            document.addEventListener(eventType, async () => {
-                if (!audioContext) {
-                    console.log("Initializing audio...");
-                    try {
-                        await initAudio();
-                        console.log("Audio initialization complete");
-                    } catch (error) {
-                        console.error("Failed to initialize audio:", error);
+        
+        if (isMobile) {
+            // Show mobile-specific message
+            document.getElementById('title').innerHTML = 'Ready to listen?\nTap or click to continue';
+            document.getElementById('title').classList.add('ready-message');
+            
+            // Wait for user interaction before proceeding
+            await new Promise((resolve) => {
+                const handleInteraction = async () => {
+                    // Remove event listeners
+                    ['click', 'touchstart', 'keydown'].forEach(eventType => {
+                        document.removeEventListener(eventType, handleInteraction);
+                    });
+                    
+                    // Change message to indicate loading
+                    document.getElementById('title').innerHTML = 'W A I T';
+                    document.getElementById('title').classList.remove('ready-message');
+                    
+                    // Initialize audio
+                    if (!audioContext) {
+                        console.log("Initializing audio...");
+                        try {
+                            await initAudio();
+                            console.log("Audio initialization complete");
+                        } catch (error) {
+                            console.error("Failed to initialize audio:", error);
+                        }
                     }
-                }
-            }, { once: true });
-        });
+                    
+                    resolve();
+                };
+                
+                // Add event listeners for user interaction
+                ['click', 'touchstart', 'keydown'].forEach(eventType => {
+                    document.addEventListener(eventType, handleInteraction, { once: true });
+                });
+            });
+        } else {
+            // Desktop: proceed normally
+            document.getElementById('title').innerHTML = 'W A I T';
+            
+            allVoicesObtained.then((voices) =>
+              say(
+                "Please wait a few seconds for models to load." +
+                " When you see your facial features detected, blink slowly for 5 seconds" +
+                " to help the camera calibrate to your eye shape." +
+                " Then, click or tap any key to toggle calibration mode off."
+              )
+            );
+            
+            // Start listening for user interaction to initialize audio
+            ['click', 'touchstart', 'keydown'].forEach(eventType => {
+                document.addEventListener(eventType, async () => {
+                    if (!audioContext) {
+                        console.log("Initializing audio...");
+                        try {
+                            await initAudio();
+                            console.log("Audio initialization complete");
+                        } catch (error) {
+                            console.error("Failed to initialize audio:", error);
+                        }
+                    }
+                }, { once: true });
+            });
+        }
+
+        await startFaceDetection();
+        
     } catch (error) {
         console.error("Error initializing audio file:", error);
     }
