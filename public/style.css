@@ -120,7 +120,7 @@ a {
 }
 
 #title {
-    color: rgb(235, 191, 157)
+    color: rgb(235, 191, 157);
     display: none; /* Hidden initially */
     z-index: 10;
 }

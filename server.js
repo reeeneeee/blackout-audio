@@ -1,11 +1,31 @@
+require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// AWS S3 Configuration
+console.log('Initializing S3 client...');
+console.log('AWS Region:', process.env.AWS_REGION || 'us-east-1');
+console.log('S3 Bucket:', process.env.S3_BUCKET_NAME || 'your-audio-bucket-name');
+console.log('AWS Access Key ID configured:', !!process.env.AWS_ACCESS_KEY_ID);
+console.log('AWS Secret Access Key configured:', !!process.env.AWS_SECRET_ACCESS_KEY);
+
+const s3Client = new S3Client({
+    region: process.env.AWS_REGION || 'us-east-1',
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    }
+});
+
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'your-audio-bucket-name';
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = './uploads';
@@ -119,36 +139,97 @@ app.use(express.static('public', {
 app.use(express.json());
 
 // Upload endpoint
-app.post('/upload', upload.single('audio'), (req, res) => {
+app.post('/upload', upload.single('audio'), async (req, res) => {
+    console.log('Upload request received');
+    
     if (!req.file) {
+        console.log('No file in request');
         return res.status(400).json({ error: 'No audio file uploaded' });
     }
 
-    // Store metadata
-    const fileId = path.parse(req.file.filename).name;
-    fileMetadata.set(fileId, {
-        originalName: req.file.originalname,
-        filename: req.file.filename,
-        size: req.file.size,
-        mimetype: req.file.mimetype,
-        uploadDate: new Date()
-    });
+    console.log('File received:', req.file.originalname, 'Size:', req.file.size);
 
-    // Save metadata to file
-    saveMetadata();
+    try {
+        // Check if AWS credentials are configured
+        if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+            console.error('AWS credentials not configured');
+            return res.status(500).json({ error: 'AWS credentials not configured' });
+        }
 
-    // Generate unique URL
-    const uniqueUrl = `/listen/${fileId}`;
-    
-    res.json({
-        success: true,
-        url: `https://${req.get('host')}${uniqueUrl}`, //`${req.protocol}://${req.get('host')}${uniqueUrl}`,
-        fileId: fileId
-    });
+        if (!process.env.S3_BUCKET_NAME) {
+            console.error('S3 bucket name not configured');
+            return res.status(500).json({ error: 'S3 bucket name not configured' });
+        }
+
+        console.log('AWS credentials found, proceeding with upload');
+
+        // Generate unique file ID
+        const fileId = path.parse(req.file.filename).name;
+        console.log('Generated file ID:', fileId);
+        
+        // Upload to S3
+        const fileContent = fs.readFileSync(req.file.path);
+        console.log('File read, size:', fileContent.length);
+        
+        const uploadParams = {
+            Bucket: BUCKET_NAME,
+            Key: `audio/${fileId}${path.extname(req.file.originalname)}`,
+            Body: fileContent,
+            ContentType: req.file.mimetype,
+            Metadata: {
+                originalName: req.file.originalname,
+                uploadDate: new Date().toISOString()
+            }
+        };
+
+        console.log('Uploading to S3 with params:', {
+            Bucket: uploadParams.Bucket,
+            Key: uploadParams.Key,
+            ContentType: uploadParams.ContentType
+        });
+
+        await s3Client.send(new PutObjectCommand(uploadParams));
+        console.log('S3 upload successful');
+
+        // Store metadata locally (or in a database)
+        fileMetadata.set(fileId, {
+            originalName: req.file.originalname,
+            filename: `${fileId}${path.extname(req.file.originalname)}`,
+            size: req.file.size,
+            mimetype: req.file.mimetype,
+            uploadDate: new Date(),
+            s3Key: uploadParams.Key
+        });
+
+        // Save metadata to file
+        saveMetadata();
+        console.log('Metadata saved');
+
+        // Clean up local file
+        fs.unlinkSync(req.file.path);
+        console.log('Local file cleaned up');
+
+        // Generate unique URL
+        const uniqueUrl = `/listen/${fileId}`;
+        
+        console.log('Upload completed successfully');
+        res.json({
+            success: true,
+            url: `https://${req.get('host')}${uniqueUrl}`,
+            fileId: fileId
+        });
+    } catch (error) {
+        console.error('Error in upload endpoint:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ 
+            error: 'Failed to upload file',
+            details: error.message 
+        });
+    }
 });
 
 // Serve audio files
-app.get('/audio/:fileId', (req, res) => {
+app.get('/audio/:fileId', async (req, res) => {
     const fileId = req.params.fileId;
     const metadata = fileMetadata.get(fileId);
     
@@ -156,19 +237,26 @@ app.get('/audio/:fileId', (req, res) => {
         return res.status(404).json({ error: 'Audio file not found 1' });
     }
 
-    const filePath = path.join(uploadsDir, metadata.filename);
-    
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'Audio file not found 2' });
-    }
+    try {
+        // Get file from S3
+        const getObjectParams = {
+            Bucket: BUCKET_NAME,
+            Key: metadata.s3Key || `audio/${metadata.filename}`
+        };
 
-    // Set appropriate headers
-    res.setHeader('Content-Type', metadata.mimetype);
-    res.setHeader('Content-Disposition', `inline; filename="${metadata.originalName}"`);
-    
-    // Stream the file
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
+        const command = new GetObjectCommand(getObjectParams);
+        const response = await s3Client.send(command);
+
+        // Set appropriate headers
+        res.setHeader('Content-Type', metadata.mimetype);
+        res.setHeader('Content-Disposition', `inline; filename="${metadata.originalName}"`);
+        
+        // Stream the file from S3
+        response.Body.pipe(res);
+    } catch (error) {
+        console.error('Error serving audio from S3:', error);
+        res.status(404).json({ error: 'Audio file not found 2' });
+    }
 });
 
 // Listen page
