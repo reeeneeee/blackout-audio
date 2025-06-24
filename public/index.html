@@ -37,6 +37,13 @@
             font-size: 2rem;
         }
 
+        h2 {
+            text-align: center;
+            color: rgb(53, 59, 64);
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
         .upload-area {
             border: 3px dashed #ccc;
             border-radius: 10px;
@@ -206,23 +213,41 @@
             h1 {
                 font-size: 1.5rem;
             }
+            
+            .desktop-only {
+                display: none;
+            }
+            
+            .mobile-only {
+                display: inline;
+            }
+        }
+        
+        @media (min-width: 601px) {
+            .desktop-only {
+                display: inline;
+            }
+            
+            .mobile-only {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>panoptic audio uploader</h1>
-        
+        <h1>make your own blackout player</h1>
+        <h2>sound that only plays with eyes closed</h2>
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">🎵</div>
             <div class="upload-text">
-                <strong>drop your audio file here</strong><br>
-                (or click to browse)
+                <span class="desktop-only"><strong>drop your file here</strong><br>(or click to browse)</span>
+                <span class="mobile-only"><strong>tap to select audio file</strong><br></span>
             </div>
             <small>Supports MP3, WAV, M4A, OGG, FLAC, AAC (max 50MB)</small>
         </div>
 
-        <input type="file" id="fileInput" accept="audio/*,.m4a,.mp3,.wav,.ogg,.flac,.aac">
+        <input type="file" id="fileInput" accept="audio/*,.m4a,.mp3,.wav,.ogg,.flac,.aac" capture="none">
         
         <div class="file-info" id="fileInfo">
             <strong>Selected file:</strong> <span id="fileName"></span><br>
