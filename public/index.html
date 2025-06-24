@@ -217,10 +217,10 @@
                 <strong>drop your audio file here</strong><br>
                 (or click to browse)
             </div>
-            <small>supports mp3, wav, m4a, ogg, flac (max 50mb)</small>
+            <small>Supports MP3, WAV, M4A, OGG, FLAC, AAC (max 50MB)</small>
         </div>
 
-        <input type="file" id="fileInput" accept="audio/*">
+        <input type="file" id="fileInput" accept="audio/*,.m4a,.mp3,.wav,.ogg,.flac,.aac">
         
         <div class="file-info" id="fileInfo">
             <strong>Selected file:</strong> <span id="fileName"></span><br>
@@ -288,11 +288,19 @@
 
         function handleFileSelect(file) {
             console.log('File selected:', file);
+            console.log('File name:', file.name);
+            console.log('File type:', file.type);
+            console.log('File size:', file.size);
+            console.log('File extension:', file.name.split('.').pop().toLowerCase());
             
-            // Validate file type
-            if (!file.type.startsWith('audio/')) {
-                console.log('Invalid file type:', file.type);
-                showResult('Please select a valid audio file.', 'error');
+            // Check file extension as fallback for iOS Safari
+            const extension = file.name.split('.').pop().toLowerCase();
+            const audioExtensions = ['mp3', 'wav', 'm4a', 'ogg', 'flac', 'aac', 'mp4'];
+            
+            // Validate file type - be more permissive for iOS
+            if (!file.type.startsWith('audio/') && !audioExtensions.includes(extension)) {
+                console.log('Invalid file type:', file.type, 'and extension:', extension);
+                showResult(`Please select a valid audio file. Detected type: ${file.type}, extension: ${extension}`, 'error');
                 return;
             }
 
@@ -309,7 +317,7 @@
             // Show file info
             fileName.textContent = file.name;
             fileSize.textContent = formatFileSize(file.size);
-            fileType.textContent = file.type;
+            fileType.textContent = file.type || `audio/${extension}`;
             fileInfo.classList.add('show');
             
             // Enable upload button
