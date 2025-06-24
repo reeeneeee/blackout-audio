@@ -89,7 +89,7 @@ async function initializeAudioFile() {
         
         // Show the title
         document.getElementById('title').style.display = 'flex';
-        
+        document.getElementById("title").style.visibility = "visible";
         if (isMobile) {
             // Show mobile-specific message
             document.getElementById('title').innerHTML = 'Ready to listen?\nTap or click to continue';
@@ -102,6 +102,15 @@ async function initializeAudioFile() {
                     ['click', 'touchstart', 'keydown'].forEach(eventType => {
                         document.removeEventListener(eventType, handleInteraction);
                     });
+                    
+                    allVoicesObtained.then((voices) =>
+                      say(
+                        "Please wait a few seconds for models to load." +
+                        " When you see your facial features detected, blink slowly for 5 seconds" +
+                        " to help the camera calibrate to your eye shape." +
+                        " Then, click or tap any key to toggle calibration mode off."
+                      )
+                    );
                     
                     // Change message to indicate loading
                     document.getElementById('title').innerHTML = 'W A I T';
