@@ -92,7 +92,7 @@ async function initializeAudioFile() {
         document.getElementById("title").style.visibility = "visible";
         if (isMobile) {
             // Show mobile-specific message
-            document.getElementById('title').innerHTML = 'Ready to listen?\nTap or click to continue';
+            document.getElementById('title').innerHTML = "Ready?\n<i>TAP or CLICK</i><p>to continue</p>";
             document.getElementById('title').classList.add('ready-message');
             
             // Wait for user interaction before proceeding
@@ -111,7 +111,7 @@ async function initializeAudioFile() {
                         " Then, click or tap any key to toggle calibration mode off."
                       )
                     );
-                    
+
                     // Change message to indicate loading
                     document.getElementById('title').innerHTML = 'W A I T';
                     document.getElementById('title').classList.remove('ready-message');
