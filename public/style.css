@@ -151,7 +151,7 @@ a {
 }
 
 #title.ready-message i {
-    font-size: 24px;
+    font-size: 28px;
     font-style: normal;
     display: block;
     margin: 10px 0;
@@ -173,7 +173,8 @@ a {
     }
     
     #title.ready-message i {
-        font-size: 20px;
+        font-size: 30px;
+        font-style: italic;
         margin: 8px 0;
     }
     
@@ -191,7 +192,7 @@ a {
     }
     
     #title.ready-message i {
-        font-size: 18px;
+        font-size: 20px;
         margin: 6px 0;
     }
     
@@ -219,4 +220,5 @@ a {
     font-family: 'Times New Roman', Times, serif;
     font-weight: 100;
     font-style: italic;
+    color: rgb(235, 191, 157);
 }

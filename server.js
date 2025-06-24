@@ -330,7 +330,7 @@ app.get('/listen/:fileId', (req, res) => {
     <div
       style="font-size: 40px; position: absolute; bottom: 20px; z-index: 5"
       id="bottomNote"
-      class="pulse bottom-center"
+      class="bottom-center"
     ></div>
 </body>
 </html>

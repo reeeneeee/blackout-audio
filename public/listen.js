@@ -90,10 +90,12 @@ async function initializeAudioFile() {
         // Show the title
         document.getElementById('title').style.display = 'flex';
         document.getElementById("title").style.visibility = "visible";
+
         if (isMobile) {
             // Show mobile-specific message
-            document.getElementById('title').innerHTML = "Ready?\n<i>TAP or CLICK</i><p>to continue</p>";
+            document.getElementById('title').innerHTML = "Ready?<br><i>pop in some headphones 🎧<br>then TAP or CLICK to continue</i>";
             document.getElementById('title').classList.add('ready-message');
+            video.style.filter = 'grayscale(100%) blur(3px)';
             
             // Wait for user interaction before proceeding
             await new Promise((resolve) => {
@@ -113,6 +115,7 @@ async function initializeAudioFile() {
                     );
 
                     // Change message to indicate loading
+                    video.style.filter = 'grayscale(0%) blur(3px)';
                     document.getElementById('title').innerHTML = 'W A I T';
                     document.getElementById('title').classList.remove('ready-message');
                     
