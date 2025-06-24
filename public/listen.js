@@ -76,40 +76,7 @@ function getFileIdFromURL() {
     return fileId;
 }
 
-// Mobile audio unlock function
-async function unlockMobileAudio() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (!isMobile) return;
-    
-    console.log("Unlocking mobile audio...");
-    
-    try {
-        // Create a temporary audio context to unlock audio
-        const tempContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        if (tempContext.state === 'suspended') {
-            await tempContext.resume();
-        }
-        
-        // Create a silent audio buffer
-        const silentBuffer = tempContext.createBuffer(1, 1, 22050);
-        const source = tempContext.createBufferSource();
-        source.buffer = silentBuffer;
-        source.connect(tempContext.destination);
-        source.start(0);
-        source.stop(0.001);
-        
-        // Close the temporary context
-        await tempContext.close();
-        
-        console.log("Mobile audio unlocked successfully");
-    } catch (error) {
-        console.error("Failed to unlock mobile audio:", error);
-    }
-}
-
-// Function to initialize audio file
+// Function to initialize audio file selection
 async function initializeAudioFile() {
     try {
         // Get fileId from URL parameters
@@ -136,9 +103,6 @@ async function initializeAudioFile() {
         // Start listening for user interaction only after file is selected
         ['click', 'touchstart', 'keydown'].forEach(eventType => {
             document.addEventListener(eventType, async () => {
-                // Unlock mobile audio on first user interaction
-                await unlockMobileAudio();
-                
                 if (!audioContext) {
                     console.log("Initializing audio...");
                     try {
@@ -240,11 +204,7 @@ async function startFaceDetection() {
 
             if (!audioSource && audioContext && audioBuffer) {
                 console.log("Creating new audio source, audioContext state:", audioContext.state);
-                playAudio(audioBuffer, 0.5).then(source => {
-                    audioSource = source;
-                }).catch(error => {
-                    console.error("Failed to play audio:", error);
-                });
+                audioSource = playAudio(audioBuffer, 0.5);
             } else if (!audioContext) {
                 console.log("Audio context not initialized");
             } else if (!audioBuffer) {
@@ -279,42 +239,12 @@ async function startFaceDetection() {
 // Initialize Web Audio API
 async function initAudio() {
     try {
-        // Check if we're on mobile
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        console.log("Mobile device detected:", isMobile);
-        
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // For mobile, we need to ensure user interaction before creating audio context
-        if (isMobile && audioContext.state === 'suspended') {
-            console.log("Audio context suspended on mobile, waiting for user interaction...");
-            
-            // Create a temporary audio element to "unlock" audio on mobile
-            const tempAudio = new Audio();
-            tempAudio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
-            tempAudio.volume = 0;
-            
-            // Try to play the silent audio to unlock audio context
-            try {
-                await tempAudio.play();
-                tempAudio.pause();
-                tempAudio.currentTime = 0;
-            } catch (e) {
-                console.log("Silent audio play failed:", e);
-            }
-        }
         
         // Resume audio context (required for mobile browsers)
         if (audioContext.state === 'suspended') {
-            console.log("Resuming audio context...");
             await audioContext.resume();
-            console.log("Audio context state after resume:", audioContext.state);
         }
-        
-        // Add audio context state change listener
-        audioContext.addEventListener('statechange', () => {
-            console.log("Audio context state changed to:", audioContext.state);
-        });
         
         // Disable audio worklets to prevent recording
         if (audioContext.audioWorklet) {
@@ -337,20 +267,6 @@ async function initAudio() {
         ]);
         audioBuffer = await audioContext.decodeAudioData(audioArrayBuffer);
         console.log("Audio initialized successfully, buffer duration:", audioBuffer.duration);
-        
-        // Test audio playback capability
-        if (isMobile) {
-            console.log("Testing mobile audio playback...");
-            const testSource = audioContext.createBufferSource();
-            const testGain = audioContext.createGain();
-            testGain.gain.value = 0; // Silent test
-            testSource.buffer = audioBuffer;
-            testSource.connect(testGain);
-            testGain.connect(audioContext.destination);
-            testSource.start(0, 0, 0.1); // Play 0.1 seconds of silence
-            testSource.stop(0.1);
-        }
-        
     } catch (error) {
         console.error("Error initializing audio:", error);
         audioContext = null;
@@ -359,31 +275,19 @@ async function initAudio() {
 }
 
 // Play audio using Web Audio API
-async function playAudio(buffer, volume = 0.5) {
+function playAudio(buffer, volume = 0.5) {
     if (!audioContext || !buffer) {
         console.log("Cannot play audio: audioContext or buffer not initialized");
         return null;
     }
     
-    // Check if we're on mobile
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
     // Ensure audio context is running (required for mobile)
     if (audioContext.state === 'suspended') {
-        console.log("Audio context suspended, attempting to resume...");
-        try {
-            await audioContext.resume();
-            console.log("Audio context resumed successfully, state:", audioContext.state);
-        } catch (error) {
+        audioContext.resume().then(() => {
+            console.log("Audio context resumed");
+        }).catch(error => {
             console.error("Failed to resume audio context:", error);
-            return null;
-        }
-    }
-    
-    // Additional check for mobile
-    if (isMobile && audioContext.state !== 'running') {
-        console.log("Audio context not running on mobile, cannot play audio");
-        return null;
+        });
     }
     
     const source = audioContext.createBufferSource();
@@ -402,20 +306,6 @@ async function playAudio(buffer, volume = 0.5) {
         console.log("Audio started successfully");
     } catch (error) {
         console.error("Failed to start audio:", error);
-        
-        // Try again with a small delay for mobile
-        if (isMobile) {
-            console.log("Retrying audio start for mobile...");
-            setTimeout(() => {
-                try {
-                    source.start(0, currentPosition);
-                    console.log("Audio started successfully on retry");
-                } catch (retryError) {
-                    console.error("Failed to start audio on retry:", retryError);
-                }
-            }, 100);
-        }
-        
         return null;
     }
     
