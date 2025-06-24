@@ -120,52 +120,11 @@ a {
 }
 
 #title {
+    color: rgb(235, 191, 157)
     display: none; /* Hidden initially */
-}
-
-#meditation-buttons {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
     z-index: 10;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 40px;
-    background-color: rgba(81, 120, 153, 0.1);
-    backdrop-filter: blur(3px);
-    box-sizing: border-box;
-    align-items: center;
-    justify-items: center;
-    transition: opacity 0.3s ease;
 }
 
-.meditation-button {
-    background-color: #EAE2CCff;
-    color: #517899ff;
-    border: 2px solid #EAE2CCff;
-    padding: 20px;
-    border-radius: 8px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    height: 100%;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    word-wrap: break-word;
-}
-
-.meditation-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(234, 226, 204, 0.2);
-}
-
-.meditation-button:active {
-    transform: translateY(0);
+#bottomNote {
+    z-index: 10;
 }

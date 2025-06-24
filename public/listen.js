@@ -161,6 +161,7 @@ async function startFaceDetection() {
         faceapi.draw.drawDetections(canvas, resizedDetections);
         faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
 
+        document.getElementById("title").style.visibility = "visible";
         document.getElementById("bottomNote").innerHTML =
           "<i>TAP or CLICK</i><p>to listen</p> ";
         minEAR = Math.min(
