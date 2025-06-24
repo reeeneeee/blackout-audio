@@ -128,11 +128,77 @@ a {
     font-style: italic;
 }
 
-#bottomNote {
-    z-index: 10;
-    font-family: 'Times New Roman', Times, serif;
-    font-weight: 100;
-    font-style: italic;
+#title.ready-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 32px;
+    line-height: 1.2;
+    max-width: 90%;
+    pointer-events: auto;
+    cursor: pointer;
+    color: rgb(235, 191, 157);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    animation: readyPulse 2s ease-in-out infinite;
+    transition: all 0.3s ease;
+}
+
+#title.ready-message:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    color: rgb(255, 200, 170);
+}
+
+#title.ready-message i {
+    font-size: 24px;
+    font-style: normal;
+    display: block;
+    margin: 10px 0;
+    opacity: 0.8;
+}
+
+#title.ready-message p {
+    font-size: 20px;
+    margin: 5px 0;
+    opacity: 0.7;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+    #title.ready-message {
+        font-size: 28px;
+        max-width: 95%;
+        padding: 0 10px;
+    }
+    
+    #title.ready-message i {
+        font-size: 20px;
+        margin: 8px 0;
+    }
+    
+    #title.ready-message p {
+        font-size: 18px;
+        margin: 4px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    #title.ready-message {
+        font-size: 24px;
+        max-width: 98%;
+        padding: 0 5px;
+    }
+    
+    #title.ready-message i {
+        font-size: 18px;
+        margin: 6px 0;
+    }
+    
+    #title.ready-message p {
+        font-size: 16px;
+        margin: 3px 0;
+    }
 }
 
 #ready-message {
@@ -146,4 +212,11 @@ a {
 @keyframes readyPulse {
     0%, 100% { opacity: 0.8; }
     50% { opacity: 1; }
+}
+
+#bottomNote {
+    z-index: 10;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 100;
+    font-style: italic;
 }
