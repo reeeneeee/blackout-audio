@@ -256,6 +256,8 @@ async function startFaceDetection() {
           // When eyes are open, stop audio and display grayscale.
           if (bothEyesClosed) {
             console.log("both eyes closed, playing audio");
+            video.style.filter = 'grayscale(0%) blur(3px)';
+            document.getElementById("title").style.visibility = "hidden";
 
             if (!audioSource && audioContext && audioBuffer) {
                 console.log("Creating new audio source, audioContext state:", audioContext.state);
@@ -279,7 +281,9 @@ async function startFaceDetection() {
                 currentPosition += eyesClosedTime;
                 eyesClosedStartTime = 0;
             }
-            console.log("both eyes open, stopping audio");
+            console.log("eyes open, stopping audio");
+            video.style.filter = 'grayscale(100%) blur(3px)';
+            document.getElementById("title").style.visibility = "visible";
             eyesLastOpenedTime = new Date();
             if (audioSource) {
                 stopAudio(audioSource);
