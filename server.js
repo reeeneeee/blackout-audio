@@ -282,10 +282,13 @@ app.get('/listen/:fileId', (req, res) => {
     <style>
       body {
           font-family: Arial, sans-serif;
-          max-width: 600px;
-          margin: 50px auto;
-          padding: 20px;
-          background-color: #f5f5f5;
+          margin: 0;
+          padding: 0;
+          background-color: #000;
+          overflow: hidden;
+          position: relative;
+          width: 100vw;
+          height: 100vh;
       }
       .player-container {
           background: white;
@@ -328,7 +331,8 @@ app.get('/listen/:fileId', (req, res) => {
     >
       W A I T
     </div>
-    <video id="video" autoplay playsinline></video>
+    <video id="video" autoplay playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"></video>
+    <canvas id="canvas" style="position: absolute; top: 0; left: 0; z-index: 10; width: 100%; height: 100%;"></canvas>
     <div
       style="font-size: 40px; position: absolute; bottom: 20px; z-index: 5"
       id="bottomNote"

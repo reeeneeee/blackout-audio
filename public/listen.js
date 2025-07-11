@@ -3,6 +3,7 @@ window.speechSynthesis.cancel();
 
 // DOM elements
 const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
 
 // Eye detection variables
 const EYE_DETECTION = {
@@ -271,12 +272,10 @@ async function startFaceDetection() {
     });
   }
 
-  // Create canvas for face detection overlay
-  const canvas = faceapi.createCanvasFromMedia(video);
-  document.body.append(canvas);
-  
   // Set canvas size to match video dimensions
   const displaySize = { width: video.videoWidth, height: video.videoHeight };
+  canvas.width = displaySize.width;
+  canvas.height = displaySize.height;
   faceapi.matchDimensions(canvas, displaySize);
 
   // Main detection loop - runs every 100ms
