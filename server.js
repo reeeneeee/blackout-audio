@@ -1,3 +1,4 @@
+// Imports
 require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
@@ -7,6 +8,7 @@ const crypto = require('crypto');
 const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
+// Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
